@@ -1,0 +1,209 @@
+---
+title: "R-Script del analisis de las estaciones del Senamhi"
+author:
+- name: Carhuayal Carrillo Milagros Wensy
+- name: Lopez Larico Paula Elizabeth
+- name: Rojas Cardenas Alexandra
+date: "31/11/2020"
+output:
+  word_document:
+    toc: yes
+    toc_depth: '2'
+  html_document:
+    toc: yes
+    toc_depth: 2
+lang: es-Es
+---
+
+## Estaciones del Senamhi usadas
+**Estación Augusto Weberbauer**
+  
+  Lat: -7.166667, Lon: -78.5
+
+**Estación Bambamarca**
+  
+  Lat: -6.676389, Lon: -78.518333
+
+**Estación Celendin**
+  
+  Lat: -6.85, Lon: -78.122172
+
+## Estacion Augusto Weberbauer
+
+### Librerias
+
+```{r include=FALSE}
+library(tidyverse)
+
+library(dplyr)
+library(readxl)
+library(Hmisc)
+library(lubridate)
+```
+
+```{r eval=FALSE}
+library(tidyverse)
+library(dplyr)
+library(readxl)
+library(Hmisc)
+library(lubridate)
+
+```
+
+Comenzamos con la estación Augusto Weberbauer cargando su data
+
+```{r message=FALSE}
+setwd("D:/documentos/CICLO VI/HIDROLOGÍA/trabajo grupal_cuenca/")
+Datos_Augusto <- read_xlsx(
+  "D:\\documentos\\CICLO VI\\HIDROLOGÍA\\trabajo grupal_cuenca\\Estaciones_senamhi\\Augusto_12hrs.xlsx"
+  )
+```
+```{r}
+head(Datos_Augusto)
+tail(Datos_Augusto)
+```
+
+Se observa que son datos desde 1965 - 2018, para este trabajo se usara el periodo 1997 - 2017 para todas las estaciones.
+Se procede a delimitar la data
+
+```{r}
+class(Datos_Augusto$FECHA)
+Datos_Augusto$FECHA <- as.Date(Datos_Augusto$FECHA)
+class(Datos_Augusto$FECHA)
+```
+```{r message=FALSE}
+meses <- c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12")
+Años <- c(seq(1997, 2017, 1))
+```
+```{r message=FALSE}
+Datos_Augusto <- Datos_Augusto %>% 
+  filter(str_sub(FECHA, 6, 7) %in% meses & str_sub(FECHA, 1, 4) %in% Años) %>% 
+  mutate(id = 1:n())
+```
+```{r}
+head(Datos_Augusto)
+tail(Datos_Augusto)
+```
+
+Los datos de precipitación son tomados cada 12hrs y procedemos a hallar la diaria.
+
+```{r message=FALSE}
+Datos_Au <- Datos_Augusto %>%
+  group_by(FECHA) %>% 
+  summarise(pp = sum(VALOR))
+```
+```{r}
+head(Datos_Au)
+```
+
+### Promedio total de Augusto Weberbauer
+
+```{r message=FALSE}
+Datos_Au <- Datos_Au %>% mutate(año = year(FECHA)) %>%
+  mutate(mes = month(FECHA)) 
+```
+```{r}
+summary(Datos_Au$pp)
+```
+
+### Promedio por año de Augusto Weberbauer
+
+```{r message=FALSE}
+pp_au_pa <- Datos_Au %>% 
+  group_by(año) %>%
+  summarise(prom_pp = mean(pp))
+```
+```{r}
+data.frame(pp_au_pa)
+```
+
+## Estaciones Bamabamarca y Celendin
+
+El mismo procedimiento de la Estación A.W se hace 
+
+### Estacion Bambarca
+
+```{r include=FALSE}
+setwd("D:/documentos/CICLO VI/HIDROLOGÍA/trabajo grupal_cuenca/")
+Datos_Bambamarca <- read_xlsx(
+  "D:\\documentos\\CICLO VI\\HIDROLOGÍA\\trabajo grupal_cuenca\\Estaciones_senamhi\\bambamarca_12hrs.xlsx"
+  )
+class(Datos_Bambamarca$FECHA)
+Datos_Bambamarca$FECHA <- as.Date(Datos_Bambamarca$FECHA)
+meses <- c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12")
+Años <- c(seq(1997, 2017, 1))
+
+Datos_Bambamarca <- Datos_Bambamarca %>% 
+  filter(str_sub(FECHA, 6, 7) %in% meses & str_sub(FECHA, 1, 4) %in% Años) %>% 
+  mutate(id = 1:n())
+
+Datos_ba <- Datos_Bambamarca %>%
+  group_by(FECHA) %>% 
+  summarise(pp = sum(VALOR))
+
+Datos_ba <- Datos_ba %>% mutate(año = year(FECHA)) %>%
+  mutate(mes = month(FECHA)) 
+
+```
+
+#### Promedio total de Bambamarca
+
+```{r}
+summary(Datos_ba$pp)
+```
+
+#### Promedio anual de Bambamarca
+
+```{r message=FALSE}
+pp_ba_pa <- Datos_ba %>% 
+  group_by(año) %>%
+  summarise(prom_pp = mean(pp))
+```
+```{r}
+data.frame(pp_ba_pa)
+```
+
+
+### Estación Celendin
+
+```{r include=FALSE}
+setwd("D:/documentos/CICLO VI/HIDROLOGÍA/trabajo grupal_cuenca/")
+Datos_Celendin <- read_xlsx(
+  "D:\\documentos\\CICLO VI\\HIDROLOGÍA\\trabajo grupal_cuenca\\Estaciones_senamhi\\celedin_12hrs.xlsx"
+  )
+
+class(Datos_Celendin$FECHA)
+Datos_Celendin$FECHA <- as.Date(Datos_Celendin$FECHA)
+
+meses <- c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12")
+Años <- c(seq(1997, 2017, 1))
+
+Datos_Celendin <- Datos_Celendin %>% 
+  filter(str_sub(FECHA, 6, 7) %in% meses & str_sub(FECHA, 1, 4) %in% Años) %>% 
+  mutate(id = 1:n())
+
+Datos_ce <- Datos_Celendin %>%
+  group_by(FECHA) %>% 
+  summarise(pp = sum(VALOR))
+
+Datos_ce <- Datos_ce %>% mutate(año = year(FECHA)) %>%
+  mutate(mes = month(FECHA)) 
+```
+
+#### Promedio total de Celendin
+
+```{r}
+summary(Datos_ce$pp)
+```
+
+#### Promedio anual de Celendin
+
+```{r message=FALSE}
+pp_ce_pa <- Datos_ce %>% 
+  group_by(año) %>%
+  summarise(prom_pp = mean(pp))
+```
+```{r}
+data.frame(pp_ce_pa)
+```
+
